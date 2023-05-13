@@ -1,3 +1,50 @@
+# Information about this fork
+
+This fork extends nullboard with the python backup server developed in [gf-mse's fork](https://github.com/gf-mse/nullboard). On top it provides Dockerfiles for both nullboard and backup-server so that they can both easily dockerized and deployed in a server.
+
+## Instructions for building and starting the docker containers:
+
+Build the nullboard main container and the nullboard-backup-server container:
+
+    # Pull the base images
+    docker image pull nginx:stable-alpine
+    docker image pull python:3.9-buster
+
+    # Build the containers locally
+    docker build -t local/nullboard-main:05_2023 -t local/nullboard-main:latest .
+    cd nullboard-backup
+    docker build -t local/nullboard-backup:05_2023 -t local/nullboard-backup:latest .
+
+Instead of using the standard nullboard by apankrat, it is also possible to use [gf-mse's version](https://github.com/gf-mse/nullboard), which adds some functionalities such as stashing boards, etc. This is available in the nullboard-extended folder. I myself I found the standard version plenty enough, as the backup server runs fine for it as well.
+
+    # Build the extended version instead of nullboard-main
+    cd nullboard-extended
+    docker build -t local/nullboard-extended:05_2023 -t local/nullboard-extended:latest .
+
+### Run via docker-compose:
+
+    version: '3'
+    services:
+      nullboard-main:
+        image: local/nullboard-main:latest
+        ports:
+          - "8085:80"
+        container_name: "nullboard-main"
+        restart: unless-stopped
+
+      nullboard-backup:
+        image: local/nullboard-backup:latest
+        ports:
+          - "20002:20002"
+        container_name: "nullboard-backup"
+        restart: unless-stopped
+        volumes:
+          - backups:/nullboard-backups
+
+- Nullboard UI: localhost:8085
+- Setup the backup server ("Setting"->"Auto Backup") as remote with: http://localhost:20002 and NULL as the token
+
+
 # Nullboard
 
 Nullboard is a minimalist take on a kanban board / a task list manager, designed to be compact, readable and quick in use.
